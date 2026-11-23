@@ -52,3 +52,8 @@ actual fun residentKb(): Long = memScoped {
     fn.invoke(GetCurrentProcess(), buf, 72u)
     (buf + 16)!!.reinterpret<ULongVar>()[0].toLong() / 1024
 }
+
+actual fun quitNow() {
+    platform.posix.fflush(null)
+    platform.posix._exit(0)
+}

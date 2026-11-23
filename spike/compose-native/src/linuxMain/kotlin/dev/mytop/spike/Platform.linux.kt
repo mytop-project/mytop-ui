@@ -47,3 +47,8 @@ actual fun residentKb(): Long =
     readText("/proc/self/status").lineSequence()
         .firstOrNull { it.startsWith("VmRSS:") }
         ?.removePrefix("VmRSS:")?.trim()?.substringBefore(' ')?.toLongOrNull() ?: -1
+
+actual fun quitNow() {
+    platform.posix.fflush(null)
+    platform.posix._exit(0)
+}

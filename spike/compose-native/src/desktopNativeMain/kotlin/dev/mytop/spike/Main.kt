@@ -33,6 +33,9 @@ expect fun msSinceProcessStart(): Long
 
 expect fun residentKb(): Long
 
+/** Flushes stdout and ends the process with status 0 without the window teardown (see report). */
+expect fun quitNow()
+
 fun main(args: Array<String>) {
     val measure = "--measure" in args
     application {
@@ -51,7 +54,7 @@ fun main(args: Array<String>) {
                     withFrameNanosTwice()
                     println("first-frame-ms=${msSinceProcessStart()}")
                     println("rss-kb=${residentKb()}")
-                    exitApplication()
+                    quitNow()
                 }
             }
         }

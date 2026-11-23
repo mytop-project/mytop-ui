@@ -2,6 +2,9 @@ name: Compose Native spike
 
 # Spike only, never merged: does compose-native (Compose compiled with Kotlin/Native, no JVM at
 # runtime) build and render for linuxX64, linuxArm64 and Windows x64, and what does it cost.
+# The Kotlin/Native compiler does not run on an arm64 Linux host (the build warns that the host
+# platform is not supported), so linuxArm64 is cross-linked on x64 against an arm64 sysroot taken
+# from the arm64 runner, and then run and measured on the arm64 runner.
 on:
   push:
     branches: ["ci/compose-native-spike"]
@@ -12,18 +15,17 @@ permissions:
 
 env:
   SDL_TAG: release-3.2.30
+  DEV_PACKAGES: >-
+    build-essential cmake ninja-build pkg-config git file
+    libfontconfig1-dev libdbus-1-dev libegl-dev libgl-dev libgles-dev libgbm-dev
+    libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxfixes-dev
+    libxss-dev libxtst-dev libxkbcommon-dev libwayland-dev wayland-protocols
+    libdrm-dev libudev-dev libasound2-dev libpulse-dev libdecor-0-dev
+    xvfb x11-apps imagemagick libgl1-mesa-dri libglx-mesa0 libegl-mesa0 mesa-utils
 
 jobs:
-  linux:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: linuxX64
-            runner: ubuntu-24.04
-          - target: linuxArm64
-            runner: ubuntu-24.04-arm
-    runs-on: ${{ matrix.runner }}
+  linux-x64:
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,24 +35,16 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: wrapper
       - name: System packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            build-essential cmake ninja-build pkg-config git file \
-            libfontconfig1-dev libdbus-1-dev libegl-dev libgl-dev libgles-dev libgbm-dev \
-            libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxfixes-dev \
-            libxss-dev libxtst-dev libxkbcommon-dev libwayland-dev wayland-protocols \
-            libdrm-dev libudev-dev libasound2-dev libpulse-dev libdecor-0-dev \
-            xvfb x11-apps imagemagick libgl1-mesa-dri libglx-mesa0 libegl-mesa0 mesa-utils
+          sudo apt-get install -y --no-install-recommends $DEV_PACKAGES
       - name: Cache SDL3
         id: sdl-cache
         uses: actions/cache@v4
         with:
           path: /opt/sdl3
-          key: sdl3-${{ env.SDL_TAG }}-${{ runner.arch }}-v1
+          key: sdl3-${{ env.SDL_TAG }}-x64-v1
       - name: Build SDL3 (Ubuntu 24.04 has no libsdl3)
         if: steps.sdl-cache.outputs.cache-hit != 'true'
         run: |
@@ -64,25 +58,124 @@ jobs:
           sudo cp -a /opt/sdl3/lib/. /usr/local/lib/ 2>/dev/null || sudo cp -a /opt/sdl3/lib*/. /usr/local/lib/
           sudo cp -a /opt/sdl3/include/. /usr/local/include/
           sudo ldconfig
-          ls -l /usr/local/lib | grep -i sdl3
       - name: Build
-        env:
-          LINUX_NATIVE_LIBRARY_DIRS: /usr/local/lib
-          LINUX_X64_NATIVE_LIBRARY_DIRS: /usr/local/lib
-          LINUX_ARM64_NATIVE_LIBRARY_DIRS: /usr/local/lib
         working-directory: spike/compose-native
-        run: ./gradlew --no-daemon --stacktrace linkReleaseExecutable${{ matrix.target == 'linuxX64' && 'LinuxX64' || 'LinuxArm64' }}
+        env:
+          LINUX_X64_NATIVE_LIBRARY_DIRS: /usr/local/lib
+        run: ./gradlew --no-daemon --stacktrace linkReleaseExecutableLinuxX64
       - name: Measure
         working-directory: spike/compose-native
         run: |
-          bin=$(find build/bin -type f \( -name '*.kexe' -o -name 'mytop-spike' -o -name 'compose-native-spike' \) -path '*release*' | head -n1)
+          bin=$(find build/bin/linuxX64 -type f -path '*releaseExecutable*' -name '*.kexe' | head -n1)
           echo "binary: $bin"
           ci/report-linux.sh "$bin" "$PWD/out"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ${{ matrix.target }}
+          name: linuxX64
           path: spike/compose-native/out
+
+  arm64-sysroot:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: System packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends $DEV_PACKAGES
+      - name: Cache SDL3
+        id: sdl-cache
+        uses: actions/cache@v4
+        with:
+          path: /opt/sdl3
+          key: sdl3-${{ env.SDL_TAG }}-arm64-v1
+      - name: Build SDL3
+        if: steps.sdl-cache.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch "$SDL_TAG" https://github.com/libsdl-org/SDL /tmp/sdl
+          cmake -S /tmp/sdl -B /tmp/sdl/build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/opt/sdl3 -DSDL_TESTS=OFF -DSDL_EXAMPLES=OFF
+          cmake --build /tmp/sdl/build
+          cmake --install /tmp/sdl/build
+      - name: Pack the link-time libraries
+        run: |
+          mkdir -p /tmp/sysroot
+          cp -a /usr/lib/aarch64-linux-gnu/. /tmp/sysroot/
+          cp -a /opt/sdl3/lib/. /tmp/sysroot/ 2>/dev/null || cp -a /opt/sdl3/lib*/. /tmp/sysroot/
+          tar -C /tmp/sysroot -czf /tmp/arm64-sysroot.tgz .
+          ls -l /tmp/arm64-sysroot.tgz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arm64-sysroot
+          path: /tmp/arm64-sysroot.tgz
+          retention-days: 3
+
+  linux-arm64-build:
+    needs: arm64-sysroot
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: arm64-sysroot
+          path: /tmp/dl
+      - run: sudo mkdir -p /opt/arm64-sysroot && sudo tar -C /opt/arm64-sysroot -xzf /tmp/dl/arm64-sysroot.tgz
+      - name: Cross-build for linuxArm64
+        working-directory: spike/compose-native
+        env:
+          LINUX_ARM64_NATIVE_LIBRARY_DIRS: /opt/arm64-sysroot
+        run: ./gradlew --no-daemon --stacktrace linkReleaseExecutableLinuxArm64
+      - run: |
+          cd spike/compose-native
+          bin=$(find build/bin/linuxArm64 -type f -path '*releaseExecutable*' -name '*.kexe' | head -n1)
+          ls -l "$bin"
+          mkdir -p "$GITHUB_WORKSPACE/arm-bin"
+          cp "$bin" "$GITHUB_WORKSPACE/arm-bin/mytop-spike.kexe"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linuxArm64-binary
+          path: arm-bin
+          retention-days: 3
+
+  linux-arm64-run:
+    needs: [linux-arm64-build, arm64-sysroot]
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: System packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends $DEV_PACKAGES
+      - uses: actions/cache@v4
+        with:
+          path: /opt/sdl3
+          key: sdl3-${{ env.SDL_TAG }}-arm64-v1
+      - name: Install SDL3
+        run: |
+          sudo cp -a /opt/sdl3/lib/. /usr/local/lib/ 2>/dev/null || sudo cp -a /opt/sdl3/lib*/. /usr/local/lib/
+          sudo ldconfig
+      - uses: actions/download-artifact@v4
+        with:
+          name: linuxArm64-binary
+          path: arm-bin
+      - name: Measure
+        run: spike/compose-native/ci/report-linux.sh arm-bin/mytop-spike.kexe "$PWD/out"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: linuxArm64
+          path: out
 
   windows:
     runs-on: windows-latest
@@ -95,8 +188,6 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: wrapper
       - name: Build and stage the distribution
         working-directory: spike/compose-native
         shell: bash
@@ -105,7 +196,7 @@ jobs:
         working-directory: spike/compose-native
         shell: pwsh
         run: |
-          $d = Get-ChildItem build -Recurse -Filter *.exe | Where-Object { $_.FullName -match 'Distribution|distribution' } | Select-Object -First 1
+          $d = Get-ChildItem build -Recurse -Filter *.exe | Where-Object { $_.FullName -match 'istribution' } | Select-Object -First 1
           if (-not $d) { Get-ChildItem build -Recurse -Filter *.exe | ForEach-Object { $_.FullName }; throw "no distribution exe" }
           ci/report-windows.ps1 -Dist $d.DirectoryName -Out "$PWD\out"
       - uses: actions/upload-artifact@v4

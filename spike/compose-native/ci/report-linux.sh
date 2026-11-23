@@ -34,10 +34,10 @@ for i in 1 2 3; do
 done
 
 # Screenshot: run the window for a few seconds and capture the whole virtual screen.
-Xvfb :99 -screen 0 1280x800x24 &
+Xvfb :77 -screen 0 1280x800x24 &
 xvfb=$!
 sleep 2
-DISPLAY=:99 "$exe" >"$out/window.log" 2>&1 &
+DISPLAY=:77 "$exe" >"$out/window.log" 2>&1 &
 app=$!
 sleep 10
 if kill -0 "$app" 2>/dev/null; then
@@ -45,7 +45,7 @@ if kill -0 "$app" 2>/dev/null; then
 else
   echo "window still running after 10 s: NO" | tee -a "$out/report.txt"
 fi
-xwd -root -display :99 -out "$out/screen.xwd"
+xwd -root -display :77 -out "$out/screen.xwd"
 convert "$out/screen.xwd" "$out/screenshot.png"
 kill "$app" 2>/dev/null || true
 kill "$xvfb" 2>/dev/null || true
