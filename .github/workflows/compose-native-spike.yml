@@ -1,0 +1,85 @@
+name: Compose Native spike
+
+# Spike only, never merged: does compose-native (Compose compiled with Kotlin/Native, no JVM at
+# runtime) build and render for linuxX64, linuxArm64 and Windows x64, and what does it cost.
+on:
+  push:
+    branches: ["ci/compose-native-spike"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  SDL_TAG: release-3.2.30
+
+jobs:
+  linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linuxX64
+            runner: ubuntu-24.04
+          - target: linuxArm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: wrapper
+      - name: System packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build pkg-config git file \
+            libfontconfig1-dev libdbus-1-dev libegl-dev libgl-dev libgles-dev libgbm-dev \
+            libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxfixes-dev \
+            libxss-dev libxtst-dev libxkbcommon-dev libwayland-dev wayland-protocols \
+            libdrm-dev libudev-dev libasound2-dev libpulse-dev libdecor-0-dev \
+            xvfb x11-apps imagemagick libgl1-mesa-dri libglx-mesa0 libegl-mesa0 mesa-utils
+      - name: Cache SDL3
+        id: sdl-cache
+        uses: actions/cache@v4
+        with:
+          path: /opt/sdl3
+          key: sdl3-${{ env.SDL_TAG }}-${{ runner.arch }}-v1
+      - name: Build SDL3 (Ubuntu 24.04 has no libsdl3)
+        if: steps.sdl-cache.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch "$SDL_TAG" https://github.com/libsdl-org/SDL /tmp/sdl
+          cmake -S /tmp/sdl -B /tmp/sdl/build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/opt/sdl3 -DSDL_TESTS=OFF -DSDL_EXAMPLES=OFF
+          cmake --build /tmp/sdl/build
+          cmake --install /tmp/sdl/build
+      - name: Install SDL3
+        run: |
+          sudo cp -a /opt/sdl3/lib/. /usr/local/lib/ 2>/dev/null || sudo cp -a /opt/sdl3/lib*/. /usr/local/lib/
+          sudo cp -a /opt/sdl3/include/. /usr/local/include/
+          sudo ldconfig
+          ls -l /usr/local/lib | grep -i sdl3
+      - name: Build
+        env:
+          LINUX_NATIVE_LIBRARY_DIRS: /usr/local/lib
+          LINUX_X64_NATIVE_LIBRARY_DIRS: /usr/local/lib
+          LINUX_ARM64_NATIVE_LIBRARY_DIRS: /usr/local/lib
+        working-directory: spike/compose-native
+        run: ./gradlew --no-daemon --stacktrace link${{ 'ReleaseExecutable' }}${{ matrix.target == 'linuxX64' && 'LinuxX64' || 'LinuxArm64' }}
+      - name: Measure
+        working-directory: spike/compose-native
+        run: |
+          bin=$(find build/bin -type f \( -name '*.kexe' -o -name 'mytop-spike' -o -name 'compose-native-spike' \) -path '*release*' | head -n1)
+          echo "binary: $bin"
+          ci/report-linux.sh "$bin" "$PWD/out"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ matrix.target }}
+          path: spike/compose-native/out
