@@ -83,3 +83,33 @@ jobs:
         with:
           name: ${{ matrix.target }}
           path: spike/compose-native/out
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: wrapper
+      - name: Build and stage the distribution
+        working-directory: spike/compose-native
+        shell: bash
+        run: ./gradlew --no-daemon --stacktrace linkReleaseExecutableMingwX64 prepareWindowsX64ReleaseDistribution
+      - name: Measure
+        working-directory: spike/compose-native
+        shell: pwsh
+        run: |
+          $d = Get-ChildItem build -Recurse -Filter *.exe | Where-Object { $_.FullName -match 'Distribution|distribution' } | Select-Object -First 1
+          if (-not $d) { Get-ChildItem build -Recurse -Filter *.exe | ForEach-Object { $_.FullName }; throw "no distribution exe" }
+          ci/report-windows.ps1 -Dist $d.DirectoryName -Out "$PWD\out"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windowsX64
+          path: spike/compose-native/out
