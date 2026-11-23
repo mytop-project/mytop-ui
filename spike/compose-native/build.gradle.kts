@@ -5,7 +5,8 @@ plugins {
     id("dev.brahmkshatriya.compose") version "1.13.0-beta01"
 }
 
-val composeNativeVersion = "1.13.0-beta01"
+// The patched build's version (CN_VERSION, settings.gradle.kts) or upstream's.
+val composeNativeVersion = System.getenv("CN_VERSION") ?: "1.13.0-beta01"
 val composeVersion = "1.13.0-beta01"
 
 kotlin {

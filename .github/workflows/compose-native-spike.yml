@@ -14,6 +14,9 @@ permissions:
   contents: read
 
 env:
+  # The patched compose-native: release v<CN_VERSION> of mytop-project/compose-native, its sha256 pinned here.
+  CN_VERSION: 1.13.0-beta01-mytop.1
+  CN_SHA256: 5ace9958184fa4a1a5d331cda484a908696506a9bcab54d966d5260332bae3c1
   SDL_TAG: release-3.2.30
   DEV_PACKAGES: >-
     build-essential cmake ninja-build pkg-config git file
@@ -35,6 +38,17 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: gradle/actions/setup-gradle@v4
+      - name: Fetch the patched compose-native repository (mytop-project/compose-native, branch mytop)
+        shell: bash
+        run: |
+          set -euo pipefail
+          temp="$(cygpath -m "$RUNNER_TEMP" 2>/dev/null || echo "$RUNNER_TEMP")"
+          mkdir -p "$temp/cn-maven"
+          base="https://github.com/mytop-project/compose-native/releases/download/v$CN_VERSION"
+          curl --fail --location --silent --show-error --output "$temp/cn-maven.tar.gz"             "$base/compose-native-maven-$CN_VERSION.tar.gz"
+          echo "$CN_SHA256  $temp/cn-maven.tar.gz" | sha256sum --check
+          tar --force-local -xzf "$temp/cn-maven.tar.gz" -C "$temp/cn-maven"
+          echo "CN_REPO=$temp/cn-maven" >> "$GITHUB_ENV"
       - name: System packages
         run: |
           sudo apt-get update
@@ -69,6 +83,19 @@ jobs:
           bin=$(find build/bin/linuxX64 -type f -path '*releaseExecutable*' -name '*.kexe' | head -n1)
           echo "binary: $bin"
           ci/report-linux.sh "$bin" "$PWD/out"
+      - name: "Clean exit under Xvfb, no _exit and no shim, must exit 0 with no X error"
+        working-directory: spike/compose-native
+        run: |
+          bin=$(find build/bin/linuxX64 -type f -path '*releaseExecutable*' -name '*.kexe' | head -n1)
+          export LD_LIBRARY_PATH=/usr/local/lib LIBGL_ALWAYS_SOFTWARE=1 SDL_VIDEODRIVER=x11
+          set +e
+          timeout 120 xvfb-run -a -s "-screen 0 1280x800x24" "$bin" --measure --clean-exit >out/clean-exit.txt 2>out/clean-exit.err
+          code=$?
+          set -e
+          cat out/clean-exit.txt out/clean-exit.err
+          echo "CLEAN-EXIT: exit code=$code, compose-native=$CN_VERSION"
+          if grep -q 'X Error' out/clean-exit.txt out/clean-exit.err; then echo "CLEAN-EXIT: an X error was printed"; exit 1; fi
+          test "$code" -eq 0
       - name: Exit bug diagnostic (no _exit; X calls traced and synchronous)
         working-directory: spike/compose-native
         continue-on-error: true
@@ -78,7 +105,10 @@ jobs:
           export LD_LIBRARY_PATH=/usr/local/lib LIBGL_ALWAYS_SOFTWARE=1 SDL_VIDEODRIVER=x11
           set +e
           LD_PRELOAD=$PWD/out/xtrace-shim.so timeout 120 xvfb-run -a -s "-screen 0 1280x800x24"             "$bin" --measure --clean-exit >out/exitdiag.txt 2>out/exitdiag.err
-          echo "exit=$?" | tee -a out/exitdiag.txt
+          code=$?
+          echo "exit=$code" | tee -a out/exitdiag.txt
+          xerrors=$(grep -c '^X Error' out/exitdiag.txt || true)
+          echo "VERDICT: clean exit code=$code, X errors=$xerrors, compose-native=$CN_VERSION"
           # resolve frames that fall in the executable to function names
           grep -E 'XTRACE   #[0-9]+ .*[.]kexe' out/exitdiag.err | sed -E 's/.*[+]0x([0-9a-f]+) .*/\1/' | sort -u | xargs -r addr2line -f -C -e "$bin" > out/exitdiag.symbols.txt || true
           echo '```'; grep -vE 'XTRACE   #' out/exitdiag.err | head -60; echo '```'
@@ -140,6 +170,17 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: gradle/actions/setup-gradle@v4
+      - name: Fetch the patched compose-native repository (mytop-project/compose-native, branch mytop)
+        shell: bash
+        run: |
+          set -euo pipefail
+          temp="$(cygpath -m "$RUNNER_TEMP" 2>/dev/null || echo "$RUNNER_TEMP")"
+          mkdir -p "$temp/cn-maven"
+          base="https://github.com/mytop-project/compose-native/releases/download/v$CN_VERSION"
+          curl --fail --location --silent --show-error --output "$temp/cn-maven.tar.gz"             "$base/compose-native-maven-$CN_VERSION.tar.gz"
+          echo "$CN_SHA256  $temp/cn-maven.tar.gz" | sha256sum --check
+          tar --force-local -xzf "$temp/cn-maven.tar.gz" -C "$temp/cn-maven"
+          echo "CN_REPO=$temp/cn-maven" >> "$GITHUB_ENV"
       - uses: actions/download-artifact@v4
         with:
           name: arm64-sysroot
@@ -204,6 +245,17 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: gradle/actions/setup-gradle@v4
+      - name: Fetch the patched compose-native repository (mytop-project/compose-native, branch mytop)
+        shell: bash
+        run: |
+          set -euo pipefail
+          temp="$(cygpath -m "$RUNNER_TEMP" 2>/dev/null || echo "$RUNNER_TEMP")"
+          mkdir -p "$temp/cn-maven"
+          base="https://github.com/mytop-project/compose-native/releases/download/v$CN_VERSION"
+          curl --fail --location --silent --show-error --output "$temp/cn-maven.tar.gz"             "$base/compose-native-maven-$CN_VERSION.tar.gz"
+          echo "$CN_SHA256  $temp/cn-maven.tar.gz" | sha256sum --check
+          tar --force-local -xzf "$temp/cn-maven.tar.gz" -C "$temp/cn-maven"
+          echo "CN_REPO=$temp/cn-maven" >> "$GITHUB_ENV"
       - name: Build and stage the distribution
         working-directory: spike/compose-native
         shell: bash
