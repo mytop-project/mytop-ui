@@ -48,6 +48,7 @@ actual fun residentKb(): Long =
         .firstOrNull { it.startsWith("VmRSS:") }
         ?.removePrefix("VmRSS:")?.trim()?.substringBefore(' ')?.toLongOrNull() ?: -1
 
+@OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
 actual fun quitNow() {
     platform.posix.fflush(null)
     platform.posix._exit(0)
