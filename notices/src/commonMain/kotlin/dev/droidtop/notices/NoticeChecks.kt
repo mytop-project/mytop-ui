@@ -21,7 +21,7 @@ object NoticeChecks {
             if (!reachable(bgs, floor)) return
             bgs.forEach { bg ->
                 val r = m.ratio(fg, bg)
-                if (r < floor - 0.01) add("$name is $r:1 on ${Integer.toHexString(bg)} (floor $floor)")
+                if (r < floor - 0.01) add("$name is $r:1 on ${bg.toUInt().toString(16)} (floor $floor)")
             }
         }
         check("info ink", n.infoInk, surfaces + n.infoPlate)

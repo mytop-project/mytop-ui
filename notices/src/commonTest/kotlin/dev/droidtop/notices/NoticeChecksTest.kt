@@ -15,7 +15,7 @@ class NoticeChecksTest {
     }
 
     @Test
-    fun `a mid-grey ground with a lighter card is not, at 4,5`() {
+    fun `a mid-grey ground with a lighter card is not reachable at the 4 point 5 floor`() {
         // slate-es-de's light scheme: black is 4.2:1 on the ground, white 3.9:1 on the card.
         assertFalse(NoticeChecks.reachable(listOf(0xFF707070.toInt(), 0xFF808080.toInt()), 4.5))
     }

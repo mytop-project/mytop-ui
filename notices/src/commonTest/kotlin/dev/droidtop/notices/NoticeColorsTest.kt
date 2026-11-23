@@ -64,7 +64,7 @@ class NoticeColorsTest {
     }
 
     @Test
-    fun `an amber accent gives info neutral ink, a blue one keeps the accent`() {
+    fun `an amber accent gives info neutral ink a blue one keeps the accent`() {
         val amber = dark.copy(accent = 0xFFFFB84D.toInt())
         val notice = NoticeColors.derive(amber)
         assertTrue(notice.infoNeutral)
@@ -89,7 +89,7 @@ class NoticeColorsTest {
     }
 
     @Test
-    fun `contrast is WCAG's`() {
+    fun `contrast is WCAGs`() {
         assertEquals(21.0, ColorMath.ratio(ColorMath.WHITE, ColorMath.BLACK), 0.01)
         assertEquals(1.0, ColorMath.ratio(0xFF777777.toInt(), 0xFF777777.toInt()), 0.0001)
     }

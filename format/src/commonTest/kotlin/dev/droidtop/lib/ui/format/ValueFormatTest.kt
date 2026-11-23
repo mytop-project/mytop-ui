@@ -17,7 +17,7 @@ class ValueFormatTest {
     private val now = 1_700_000_000_000L
 
     @Test
-    fun `sizes are decimal, whole below a gigabyte and one decimal above`() {
+    fun `sizes are decimal whole below a gigabyte and one decimal above`() {
         assertEquals("0 KB", ValueFormat.size(0))
         assertEquals("1 KB", ValueFormat.size(10))
         assertEquals("12 KB", ValueFormat.size(12_400))
@@ -29,7 +29,7 @@ class ValueFormatTest {
     }
 
     @Test
-    fun `days ago reads today, yesterday, days, weeks, months, then over a year`() {
+    fun `days ago reads today yesterday days weeks months then over a year`() {
         assertEquals("today", ValueFormat.daysAgo(now, now))
         assertEquals("today", ValueFormat.daysAgo(now, now - day + 1))
         // A clock slightly behind the last play never reads in the future.
@@ -82,7 +82,7 @@ class ValueFormatTest {
     }
 
     @Test
-    fun `percent, count and clock time`() {
+    fun `percent count and clock time`() {
         assertEquals("45%", ValueFormat.percent(0.456f))
         assertEquals("100%", ValueFormat.percent(3f))
         assertEquals("1,234", ValueFormat.count(1234))
@@ -114,7 +114,7 @@ class ValueFormatTest {
     }
 
     @Test
-    fun `a count is grouped by thousands, negatives and the ends included`() {
+    fun `a count is grouped by thousands negatives and the ends included`() {
         assertEquals("0", ValueFormat.count(0))
         assertEquals("999", ValueFormat.count(999))
         assertEquals("1,000", ValueFormat.count(1000))
