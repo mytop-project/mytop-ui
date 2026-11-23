@@ -71,7 +71,7 @@ jobs:
           LINUX_X64_NATIVE_LIBRARY_DIRS: /usr/local/lib
           LINUX_ARM64_NATIVE_LIBRARY_DIRS: /usr/local/lib
         working-directory: spike/compose-native
-        run: ./gradlew --no-daemon --stacktrace link${{ 'ReleaseExecutable' }}${{ matrix.target == 'linuxX64' && 'LinuxX64' || 'LinuxArm64' }}
+        run: ./gradlew --no-daemon --stacktrace linkReleaseExecutable${{ matrix.target == 'linuxX64' && 'LinuxX64' || 'LinuxArm64' }}
       - name: Measure
         working-directory: spike/compose-native
         run: |
