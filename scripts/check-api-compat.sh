@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The public API stays compatible within a version (Droidtop/tracker#867, owner 2026-11-04: "I should be able to bump
+# The public API stays compatible within a version (mytop-project/tracker#867, owner 2026-11-04: "I should be able to bump
 # the version number and immediately get the benefit"). ./gradlew apiCheck (the binary-compatibility validator) fails
 # when a module's public API is not its checked-in dump (<module>/api/<module>.api). This adds the version rule: a
 # line removed from a dump since the last release is a breaking change, and fails unless lib.version is a new minor

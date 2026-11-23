@@ -1,4 +1,4 @@
-rootProject.name = "lib-ui"
+rootProject.name = "mytop-ui"
 
 pluginManagement {
     repositories {
@@ -20,8 +20,8 @@ project(":contract").projectDir = file("contract/kotlin")
 // The notice colours shared by droidtop and Enginehost (Droidtop/notices, moved here with its history).
 include(":notices")
 
-// The palette a theme resolves to and the maths over it, shared by every UI (Droidtop/tracker#867). Common Kotlin.
+// The palette a theme resolves to and the maths over it, shared by every UI (mytop-project/tracker#867). Common Kotlin.
 include(":tokens")
 
-// The one formatter for every value a person reads: sizes, durations, counts, times (Droidtop/tracker#867). Common Kotlin.
+// The one formatter for every value a person reads: sizes, durations, counts, times (mytop-project/tracker#867). Common Kotlin.
 include(":format")

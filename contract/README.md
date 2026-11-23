@@ -1,7 +1,7 @@
 # The backend contract
 
 Every call a UI makes to its backend gets one answer, and the answer always says which of four things
-happened. One wire format serves every program and every transport (the owner, Droidtop/tracker#867 D8:
+happened. One wire format serves every program and every transport (the owner, mytop-project/tracker#867 D8:
 "the UI reaches its backend through one contract (`ok`, `unavailable`, `error`, `pending`), a local socket
 on desktop and in-process calls on Android").
 

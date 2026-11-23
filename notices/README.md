@@ -17,7 +17,7 @@ arithmetic behind it.
   (Machado, Oliveira and Fernandes 2009, severity 1.0).
 
 The design and its reasons are droidtop's SPEC 7k, "Notices"
-(Droidtop/droidtop docs/SPEC.md) and Droidtop/tracker#485.
+(mytop-project/droidtop docs/SPEC.md) and mytop-project/tracker#485.
 
 ## Use
 

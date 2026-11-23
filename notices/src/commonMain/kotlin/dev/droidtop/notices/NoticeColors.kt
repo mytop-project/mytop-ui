@@ -25,7 +25,7 @@ data class NoticeInputs(
 
 /**
  * The notice colours (the notice and danger-dialog design shared by droidtop and
- * Enginehost; Droidtop/tracker#485), as ARGB ints derived from a theme's own
+ * Enginehost; mytop-project/tracker#485), as ARGB ints derived from a theme's own
  * [NoticeInputs], so a plain JVM test can hold every theme to them. Three tones, three tokens each:
  * the ink (glyph, title, edge bar), an opaque plate the notice sits on, and
  * the body text on that plate; plus the danger fill the risky button and the

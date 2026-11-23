@@ -2,10 +2,10 @@ name: CI
 
 # Every implementation of the backend contract is tested against the same fixtures
 # (contract/fixtures/answers.json). Work lands on main from ci/* branches once this is
-# green (Droidtop/tracker#867 D2).
+# green (mytop-project/tracker#867 D2).
 #
-# Consumers: each program that uses lib-ui gets a job here that builds and tests it against
-# this commit (#867 D2). No program uses lib-ui yet; the commit that moves a program onto it
+# Consumers: each program that uses mytop-ui gets a job here that builds and tests it against
+# this commit (#867 D2). No program uses mytop-ui yet; the commit that moves a program onto it
 # adds that program's job.
 on:
   push:
@@ -21,7 +21,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # The Kotlin modules build for the JVM (what Android consumers use) and for Kotlin/Native (Droidtop/tracker#958), each
+  # The Kotlin modules build for the JVM (what Android consumers use) and for Kotlin/Native (mytop-project/tracker#958), each
   # on the host that can build it: Linux for the JVM and linuxX64, Windows for mingwX64, macOS for the Apple targets.
   # The Kotlin/Native compiler does not run on an arm64 Linux host, so linuxArm64 and macosX64 are compiled and linked
   # on a host that can (their test binaries are built, not run).
@@ -107,7 +107,7 @@ jobs:
           if [ -z "$last" ]; then echo "nothing released yet; nothing to compare"; exit 0; fi
           cargo semver-checks check-release --baseline-rev "$last"
 
-  # The Kotlin API stays compatible within a version (Droidtop/tracker#867, owner 2026-11-04: "I should be able to
+  # The Kotlin API stays compatible within a version (mytop-project/tracker#867, owner 2026-11-04: "I should be able to
   # bump the version number and immediately get the benefit"): an API line removed since the last release fails
   # unless lib.version is a breaking version and the CHANGELOG says what broke.
   api-compat:
@@ -136,7 +136,7 @@ jobs:
       - run: node --test contract/js/contract.test.mjs
 
   # A green main whose version has no tag yet is released: CI tags v<version> on this commit, and that tag is
-  # what the programs pin (Droidtop/tracker#867 D2). To release, raise lib.version in gradle.properties (and the
+  # what the programs pin (mytop-project/tracker#867 D2). To release, raise lib.version in gradle.properties (and the
   # CHANGELOG) in the change that needs it; the Rust crate's version follows it.
   release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

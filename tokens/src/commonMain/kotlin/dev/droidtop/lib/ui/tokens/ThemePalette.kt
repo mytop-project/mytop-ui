@@ -3,7 +3,7 @@ package dev.droidtop.lib.ui.tokens
 import dev.droidtop.notices.ColorMath
 
 // droidtop runtime-common's GamingThemeColors (GamingThemeMapping.kt), moved here unchanged but for its name
-// (Droidtop/tracker#867: the theme types go to the tokens). droidtop keeps GamingThemeColors as a typealias, and
+// (mytop-project/tracker#867: the theme types go to the tokens). droidtop keeps GamingThemeColors as a typealias, and
 // its ES-DE theme engine (GamingThemeMapping) stays droidtop's: it is one source of a palette, and Pythia's theme
 // is another. The SPEC and tracker references are droidtop's.
 
@@ -63,7 +63,7 @@ data class ThemePalette(
 
     companion object {
         /**
-         * droidtop's own palette, from the approved visual language (owner, 2026-10-24, Droidtop/tracker#644,
+         * droidtop's own palette, from the approved visual language (owner, 2026-10-24, mytop-project/tracker#644,
          * coordination/design/proposals/2026-10-24-menus-and-visual-language.md 4.1 and 4.2): a blue-grey ground, never
          * pure black, and three surfaces one luminance step apart (cards, sheets, menus and dialogs); text that is not
          * pure white; one azure accent, used for focus, the primary button and what is chosen. It is the fallback: an

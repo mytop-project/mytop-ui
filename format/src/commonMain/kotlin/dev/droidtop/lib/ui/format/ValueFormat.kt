@@ -1,6 +1,6 @@
 package dev.droidtop.lib.ui.format
 
-// droidtop runtime-common's dev.droidtop.library.format ValueFormat.kt, moved here (Droidtop/tracker#867), then written in common Kotlin (Droidtop/tracker#958):
+// droidtop runtime-common's dev.droidtop.library.format ValueFormat.kt, moved here (mytop-project/tracker#867), then written in common Kotlin (mytop-project/tracker#958):
 // every size, time and state a person reads goes through one formatter, in every UI. SPEC references are droidtop's.
 
 import kotlin.time.Instant
@@ -8,7 +8,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
 /**
- * The one formatter for values a person reads (docs/SPEC.md 7k, "Values"; Droidtop/tracker#485 slice F2a):
+ * The one formatter for values a person reads (docs/SPEC.md 7k, "Values"; mytop-project/tracker#485 slice F2a):
  * sizes, play and remaining times, percentages, counts, clock times, "how long ago" and the plain state
  * words. Every surface (Gaming, Desktop, the companion, Standard's Preference rows, a plugin's typed
  * values) formats through here, so "1.2 GB" and "2 h 5 min" read the same everywhere and a change to

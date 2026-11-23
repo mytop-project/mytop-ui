@@ -1,7 +1,7 @@
-# lib-ui
+# mytop-ui
 
 The shared UI library for droidtop, Pythia and (later) Enginehost: one of the shared library families of
-Droidtop/tracker#867. The libraries belong to no program; each program has its own scaffold and pins a
+mytop-project/tracker#867. The libraries belong to no program; each program has its own scaffold and pins a
 tagged release of each library it uses (#867 D2).
 
 | Part | Holds | Status |
@@ -31,7 +31,7 @@ Work lands on `main` from `ci/*` branches once CI is green.
 
 ## Versions
 
-**The interface stays compatible within a version** (Droidtop/tracker#867, owner 2026-11-04: "I should be able to
+**The interface stays compatible within a version** (mytop-project/tracker#867, owner 2026-11-04: "I should be able to
 bump the version number and immediately get the benefit"). A program takes a fix by moving its pin, with no change to
 its own code. Each Kotlin module's public API is checked in as `<module>/api/<module>.api` (the Kotlin
 binary-compatibility validator): `./gradlew apiCheck` fails when the API is not its dump, and `./gradlew apiDump`

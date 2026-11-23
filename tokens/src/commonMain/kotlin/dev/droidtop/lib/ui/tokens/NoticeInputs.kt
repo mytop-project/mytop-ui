@@ -1,6 +1,6 @@
 package dev.droidtop.lib.ui.tokens
 
-// droidtop runtime-common's NoticeInputs.kt, moved here unchanged but for the palette's name (Droidtop/tracker#867).
+// droidtop runtime-common's NoticeInputs.kt, moved here unchanged but for the palette's name (mytop-project/tracker#867).
 
 import dev.droidtop.notices.NoticeColors
 import dev.droidtop.notices.NoticeInputs

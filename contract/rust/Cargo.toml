@@ -3,7 +3,7 @@ name = "ui-contract"
 version = "0.3.0"
 edition = "2021"
 license = "GPL-3.0-only"
-repository = "https://github.com/Droidtop/lib-ui"
+repository = "https://github.com/mytop-project/mytop-ui"
 description = "The backend contract every UI and operation table speaks: ok, unavailable, error or pending (contract/README.md)"
 rust-version = "1.89"
 

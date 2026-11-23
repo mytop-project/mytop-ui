@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to lib-ui. Versions follow [Semantic Versioning](https://semver.org/)
+All notable changes to mytop-ui. Versions follow [Semantic Versioning](https://semver.org/)
 (in 0.x, only a new minor version may break the interface; CI enforces it).
 
 ## [0.3.0]
@@ -8,7 +8,7 @@ All notable changes to lib-ui. Versions follow [Semantic Versioning](https://sem
 ### Changed (breaking, which a new 0.x minor may be)
 - The Kotlin modules (`contract`, `notices`, `tokens`, `format`) are Kotlin Multiplatform, with their code in
   `commonMain`, for the JVM and Kotlin/Native (`linuxX64`, `linuxArm64`, `mingwX64`, `macosArm64`, `macosX64`), so a
-  compose-native app and Android use the same code (Droidtop/tracker#958). Built with Kotlin 2.4.20. Package names are unchanged.
+  compose-native app and Android use the same code (mytop-project/tracker#958). Built with Kotlin 2.4.20. Package names are unchanged.
 - **Source layout (programs that compile a module's sources, as droidtop does for notices):** the sources moved from
   `<module>/src/main/kotlin` to `<module>/src/commonMain/kotlin`. Point the `srcDir` there.
 - `ValueFormat.time(epochMs, is24Hour, zone)`: `zone` is now a `kotlinx.datetime.TimeZone`
@@ -34,8 +34,8 @@ All notable changes to lib-ui. Versions follow [Semantic Versioning](https://sem
 
 ### Added
 - `format/`: `ValueFormat`, droidtop runtime-common's one formatter for sizes, durations, counts and times, moved
-  unchanged with its test (Droidtop/tracker#867). It is what the plugin API's facets format their values with, so
-  the facet model can move to lib-plugins next.
+  unchanged with its test (mytop-project/tracker#867). It is what the plugin API's facets format their values with, so
+  the facet model can move to mytop-plugins next.
 
 ## [0.2.1]
 
@@ -43,7 +43,7 @@ All notable changes to lib-ui. Versions follow [Semantic Versioning](https://sem
 - `tokens/`: `ThemePalette` (every colour role a UI draws, plus a theme's typefaces and texture, and droidtop's own
   palette as `DEFAULT`), `FocusRingInks` and `noticeColors`/`noticeInputs`. They are droidtop runtime-common's
   `GamingThemeColors`, `FocusRingInks` and `NoticeInputs.kt`, moved unchanged but for the palette's name, so the
-  shared UI reads a palette without droidtop's theme engine (Droidtop/tracker#867, ui-shared step 2). New tests.
+  shared UI reads a palette without droidtop's theme engine (mytop-project/tracker#867, ui-shared step 2). New tests.
 
 ## [0.2.0]
 
@@ -51,10 +51,10 @@ All notable changes to lib-ui. Versions follow [Semantic Versioning](https://sem
 - `notices/`: the notice colours shared by droidtop and Enginehost (`ColorMath`, `NoticeColors`, `NoticeChecks`),
   Droidtop/notices moved here with its three commits, unchanged but for its build file, which is now a module of
   this build. droidtop pins Droidtop/notices at its last commit (64ad439), so this is the same code.
-  Droidtop/tracker#867 step 1.
+  mytop-project/tracker#867 step 1.
 - The public API is checked in (`contract/kotlin/api/contract.api`, `notices/api/notices.api`) and CI holds the code to
   it: `apiCheck`, `scripts/check-api-compat.sh` for Kotlin and `cargo-semver-checks` for the Rust contract fail a
-  break the version does not announce (Droidtop/tracker#867).
+  break the version does not announce (mytop-project/tracker#867).
 
 ## [0.1.0]
 
@@ -63,4 +63,4 @@ All notable changes to lib-ui. Versions follow [Semantic Versioning](https://sem
   already speak it, written down, with one set of fixtures and an implementation in Kotlin
   (`dev.droidtop.lib.ui.contract.Answer`), Rust (`ui-contract`), Python (`ui_contract`) and JavaScript
   (`contract.mjs`). Each decodes every fixture the same way, and each has a guard that turns a failure
-  (an exception, a Rust panic) into an `error` answer. Droidtop/tracker#867 D8.
+  (an exception, a Rust panic) into an `error` answer. mytop-project/tracker#867 D8.

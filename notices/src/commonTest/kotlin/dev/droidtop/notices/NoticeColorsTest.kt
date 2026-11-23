@@ -7,7 +7,7 @@ import kotlin.test.assertTrue
 
 
 /**
- * The notice colours (Droidtop/tracker#485, final design tests 1 and 2): every tone reads on its own plate and on
+ * The notice colours (mytop-project/tracker#485, final design tests 1 and 2): every tone reads on its own plate and on
  * the surfaces it is drawn over, at 4.5:1 and at 7:1 with high-contrast text; caution and danger keep their hue;
  * danger stays apart from caution under the three simulated dichromacies; info falls back to neutral ink when the
  * accent would read as caution. droidtop runs the same [NoticeChecks] over every theme it bundles.
