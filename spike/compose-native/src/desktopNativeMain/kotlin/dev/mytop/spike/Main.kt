@@ -54,7 +54,7 @@ fun main(args: Array<String>) {
                     withFrameNanosTwice()
                     println("first-frame-ms=${msSinceProcessStart()}")
                     println("rss-kb=${residentKb()}")
-                    quitNow()
+                    if ("--clean-exit" in args) exitApplication() else quitNow()
                 }
             }
         }
