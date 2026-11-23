@@ -10,7 +10,7 @@ pluginManagement {
         if (patchedRepo != null) {
             maven {
                 url = java.io.File(patchedRepo).toURI()
-                content { includeGroupByRegex("dev\.brahmkshatriya.*") }
+                content { includeGroupByRegex("dev\\.brahmkshatriya.*") }
             }
         }
         mavenCentral()
@@ -30,7 +30,7 @@ dependencyResolutionManagement {
         if (patchedRepo != null) {
             maven {
                 url = java.io.File(patchedRepo).toURI()
-                content { includeGroupByRegex("dev\.brahmkshatriya.*") }
+                content { includeGroupByRegex("dev\\.brahmkshatriya.*") }
             }
         }
         mavenCentral()
