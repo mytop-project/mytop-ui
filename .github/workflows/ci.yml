@@ -21,6 +21,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # The Kotlin modules build for the JVM (what Android consumers use) and for Kotlin/Native (Droidtop/tracker#958), each
+  # on the host that can build it: Linux for the JVM and linuxX64, Windows for mingwX64, macOS for the Apple targets.
+  # The Kotlin/Native compiler does not run on an arm64 Linux host, so linuxArm64 and macosX64 are compiled and linked
+  # on a host that can (their test binaries are built, not run).
   kotlin:
     runs-on: ubuntu-24.04
     steps:
@@ -32,7 +36,52 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
-      - run: ./gradlew test apiCheck --stacktrace
+      - run: ./gradlew jvmTest --stacktrace
+      - name: TEMP print API dump diff
+        run: ./gradlew apiDump && git diff -- '*/api/*.api' | cat; git status --short | cat
+      - run: ./gradlew apiCheck --stacktrace
+
+  kotlin-linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
+      - run: ./gradlew linuxX64Test linkDebugTestLinuxArm64 --stacktrace
+
+  kotlin-windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
+      - run: ./gradlew mingwX64Test --stacktrace
+
+  kotlin-macos:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
+      - run: ./gradlew macosArm64Test linkDebugTestMacosX64 --stacktrace
 
   rust:
     runs-on: ubuntu-24.04
@@ -94,7 +143,7 @@ jobs:
   # CHANGELOG) in the change that needs it; the Rust crate's version follows it.
   release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [kotlin, rust, api-compat, python, js]
+    needs: [kotlin, kotlin-linux, kotlin-windows, kotlin-macos, rust, api-compat, python, js]
     runs-on: ubuntu-24.04
     permissions:
       contents: write

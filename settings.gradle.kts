@@ -13,15 +13,15 @@ dependencyResolutionManagement {
     }
 }
 
-// The backend contract every UI speaks (contract/README.md); plain JVM.
+// The backend contract every UI speaks (contract/README.md); common Kotlin (JVM and Kotlin/Native).
 include(":contract")
 project(":contract").projectDir = file("contract/kotlin")
 
 // The notice colours shared by droidtop and Enginehost (Droidtop/notices, moved here with its history).
 include(":notices")
 
-// The palette a theme resolves to and the maths over it, shared by every UI (Droidtop/tracker#867). Plain JVM.
+// The palette a theme resolves to and the maths over it, shared by every UI (Droidtop/tracker#867). Common Kotlin.
 include(":tokens")
 
-// The one formatter for every value a person reads: sizes, durations, counts, times (Droidtop/tracker#867). Plain JVM.
+// The one formatter for every value a person reads: sizes, durations, counts, times (Droidtop/tracker#867). Common Kotlin.
 include(":format")

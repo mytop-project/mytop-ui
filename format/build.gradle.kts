@@ -1,19 +1,13 @@
-// The one formatter for every size, duration, count and time a person reads (droidtop SPEC "Values"). Plain JVM.
+// The one formatter for every size, duration, count and time a person reads (droidtop SPEC "Values"). Common Kotlin;
+// the only dependency is kotlinx-datetime, for the zone a clock time is read in.
 plugins {
-    kotlin("jvm")
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    kotlin("multiplatform")
 }
 
 kotlin {
-    compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    sourceSets {
+        commonMain.dependencies {
+            api("org.jetbrains.kotlinx:kotlinx-datetime:0.8.0")
+        }
     }
-}
-
-dependencies {
-    testImplementation("junit:junit:4.13.2")
 }

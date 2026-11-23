@@ -3,6 +3,33 @@
 All notable changes to lib-ui. Versions follow [Semantic Versioning](https://semver.org/)
 (in 0.x, only a new minor version may break the interface; CI enforces it).
 
+## [0.3.0]
+
+### Changed (breaking, which a new 0.x minor may be)
+- The Kotlin modules (`contract`, `notices`, `tokens`, `format`) are Kotlin Multiplatform, with their code in
+  `commonMain`, for the JVM and Kotlin/Native (`linuxX64`, `linuxArm64`, `mingwX64`, `macosArm64`, `macosX64`), so a
+  compose-native app and Android use the same code (Droidtop/tracker#958). Built with Kotlin 2.4.20. Package names are unchanged.
+- **Source layout (programs that compile a module's sources, as droidtop does for notices):** the sources moved from
+  `<module>/src/main/kotlin` to `<module>/src/commonMain/kotlin`. Point the `srcDir` there.
+- `ValueFormat.time(epochMs, is24Hour, zone)`: `zone` is now a `kotlinx.datetime.TimeZone`
+  (default `TimeZone.currentSystemDefault()`), no longer a `java.util.TimeZone`. A caller that passes no zone changes
+  nothing. `format` now depends on `kotlinx-datetime` 0.8.0 (an `api` dependency, as the type is in the signature).
+  `kotlinx.datetime.TimeZone.of(id)` takes the id `java.util.TimeZone.getTimeZone(id)` did.
+- `Answer.guard` names a throwable that has no message by its class name as before; one with no class name (an
+  anonymous class) is named "Error" where the JVM gave an empty string.
+
+### Unchanged on purpose
+- Every result of `ValueFormat` and the notice colours reads exactly as before: the digits are written in common code
+  (sizes in whole numbers, halves up as `%.1f` did; counts grouped by thousands), and `java.lang.Math.round` is replaced
+  by `ColorMath.roundHalfUp` (internal), which rounds halves up as Java does, including the value just below a half
+  (0.49999999999999994 is 0). JVM tests compare both against `java.lang.Math`, `String.format` and `Calendar` over
+  every tie and a few hundred thousand random values.
+
+### Added
+- CI builds and tests every target on its host: JVM and linuxX64 on Linux, mingwX64 on Windows, macosArm64 on macOS;
+  linuxArm64 and macosX64 are compiled and linked there (their test binaries are not run).
+- The binary-compatibility dump (`<module>/api/<module>.api`) is the JVM target's. It has no klib dump yet.
+
 ## [0.2.2]
 
 ### Added

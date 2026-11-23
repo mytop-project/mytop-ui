@@ -6,10 +6,10 @@ tagged release of each library it uses (#867 D2).
 
 | Part | Holds | Status |
 |---|---|---|
-| [`contract/`](contract/README.md) | The backend contract every UI speaks: `ok`, `unavailable`, `error` or `pending` (#867 D8), in Kotlin, Rust, Python and JavaScript, tested against one set of fixtures | **here** |
-| [`notices/`](notices/README.md) | The notice colours: info, caution and danger inks, plates and the danger fill, derived from a theme's colours to stay readable and apart under colour-vision simulations (Droidtop/notices, moved here with its history). Plain JVM | **here** |
-| [`tokens/`](tokens) | The palette a theme resolves to (`ThemePalette`), the focus ring's inks (`FocusRingInks`) and a palette's notice colours (`noticeColors`). A theme engine (droidtop's ES-DE mapping, Pythia's themes) hands its palette in. Plain JVM | **here** |
-| [`format/`](format) | `ValueFormat`: the one formatter for every size, duration, count and time a person reads, in every UI. Plain JVM | **here** |
+| [`contract/`](contract/README.md) | The backend contract every UI speaks: `ok`, `unavailable`, `error` or `pending` (#867 D8), in Kotlin (common code), Rust, Python and JavaScript, tested against one set of fixtures | **here** |
+| [`notices/`](notices/README.md) | The notice colours: info, caution and danger inks, plates and the danger fill, derived from a theme's colours to stay readable and apart under colour-vision simulations (Droidtop/notices, moved here with its history). Kotlin Multiplatform: JVM and Kotlin/Native | **here** |
+| [`tokens/`](tokens) | The palette a theme resolves to (`ThemePalette`), the focus ring's inks (`FocusRingInks`) and a palette's notice colours (`noticeColors`). A theme engine (droidtop's ES-DE mapping, Pythia's themes) hands its palette in. Kotlin Multiplatform: JVM and Kotlin/Native | **here** |
+| [`format/`](format) | `ValueFormat`: the one formatter for every size, duration, count and time a person reads, in every UI. Kotlin Multiplatform: JVM and Kotlin/Native | **here** |
 | Compose Multiplatform components | droidtop's `ui-shared`, for Android and desktop | next (#867 step 3) |
 | Design tokens, as code for each UI | one source generating `DesignTokens.kt` and the test UI's `tokens.css` | next (#867 step 3) |
 | HTML test UI and bench | an HTML representation of the UI for prototyping and testing, rendered locally only, seeded from Pythia's web UI (#867 D9, D12) | next (#867 step 3) |
@@ -21,7 +21,7 @@ Licence: GPL-3.0 (see `LICENSE`).
 CI (`.github/workflows/ci.yml`) runs every implementation against `contract/fixtures/answers.json`:
 
 ```bash
-./gradlew test                                        # Kotlin
+./gradlew jvmTest apiCheck                           # Kotlin, JVM (the native targets: linuxX64Test, mingwX64Test, macosArm64Test; CI runs each on its host)
 (cd contract/rust && cargo test)                      # Rust
 python3 -I -m unittest discover -s contract/python    # Python
 node --test contract/js/                              # JavaScript
