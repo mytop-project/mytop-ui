@@ -74,9 +74,9 @@ fun QuickGlyphIcon(glyph: QuickGlyph, tint: Color, modifier: Modifier = Modifier
                 ring(12f, 12f, 4.5f)
                 val rays = listOf(0f, 45f, 90f, 135f, 180f, 225f, 270f, 315f)
                 rays.forEach { deg ->
-                    val rad = Math.toRadians(deg.toDouble())
-                    val dx = Math.cos(rad).toFloat()
-                    val dy = Math.sin(rad).toFloat()
+                    val rad = (deg.toDouble() * kotlin.math.PI / 180.0)
+                    val dx = kotlin.math.cos(rad).toFloat()
+                    val dy = kotlin.math.sin(rad).toFloat()
                     line(12f + dx * 7.5f, 12f + dy * 7.5f, 12f + dx * 10f, 12f + dy * 10f)
                 }
             }
@@ -150,9 +150,9 @@ fun QuickGlyphIcon(glyph: QuickGlyph, tint: Color, modifier: Modifier = Modifier
             QuickGlyph.ANDROID -> {
                 ring(12f, 12f, 3.2f)
                 listOf(0f, 60f, 120f, 180f, 240f, 300f).forEach { deg ->
-                    val rad = Math.toRadians(deg.toDouble())
-                    val dx = Math.cos(rad).toFloat()
-                    val dy = Math.sin(rad).toFloat()
+                    val rad = (deg.toDouble() * kotlin.math.PI / 180.0)
+                    val dx = kotlin.math.cos(rad).toFloat()
+                    val dy = kotlin.math.sin(rad).toFloat()
                     line(12f + dx * 5.5f, 12f + dy * 5.5f, 12f + dx * 9.5f, 12f + dy * 9.5f)
                 }
             }
@@ -174,9 +174,9 @@ fun QuickGlyphIcon(glyph: QuickGlyph, tint: Color, modifier: Modifier = Modifier
                 // a glance, not the same icon twice.
                 ring(12f, 12f, 5.5f)
                 listOf(0f, 45f, 90f, 135f, 180f, 225f, 270f, 315f).forEach { deg ->
-                    val rad = Math.toRadians(deg.toDouble())
-                    val dx = Math.cos(rad).toFloat()
-                    val dy = Math.sin(rad).toFloat()
+                    val rad = (deg.toDouble() * kotlin.math.PI / 180.0)
+                    val dx = kotlin.math.cos(rad).toFloat()
+                    val dy = kotlin.math.sin(rad).toFloat()
                     line(12f + dx * 7.5f, 12f + dy * 7.5f, 12f + dx * 10f, 12f + dy * 10f)
                 }
                 dot(12f, 12f, 1.8f)

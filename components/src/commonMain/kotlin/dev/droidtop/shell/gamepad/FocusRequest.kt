@@ -18,6 +18,12 @@ import androidx.compose.runtime.withFrameNanos
  * what Compose returns, never "did not throw", so the retries continue
  * until a dialog's field exists (console, 0.2.0-dev.2127).
  */
+/**
+ * Where a focus that never attached is reported: a tag and a message. The default prints; Android points it at
+ * `Log.w` (the one change from droidtop's file, which called `android.util.Log` here).
+ */
+var focusAttachFailed: (tag: String, message: String) -> Unit = { tag, message -> println("$tag: $message") }
+
 suspend fun requestFocusWhenAttached(
     focusRequester: androidx.compose.ui.focus.FocusRequester,
     tag: String,
@@ -28,7 +34,7 @@ suspend fun requestFocusWhenAttached(
         nextFrame = { withFrameNanos {} },
     )
     if (!taken) {
-        android.util.Log.w("droidtop.GamepadShell", "$tag focus never attached after $FOCUS_ATTEMPTS frames")
+        focusAttachFailed("droidtop.GamepadShell", "$tag focus never attached after $FOCUS_ATTEMPTS frames")
     }
 }
 
