@@ -3,6 +3,39 @@
 All notable changes to mytop-ui. Versions follow [Semantic Versioning](https://semver.org/)
 (in 0.x, only a new minor version may break the interface; CI enforces it).
 
+## [0.4.0]
+
+### Added
+- `components/`: the Compose Multiplatform components (mytop-project/tracker#867 step 3, #920), a Gradle build of its own
+  (it consumes `tokens` and `notices` of the same commit as a composite build, and compose-native's patched fork
+  `1.13.0-beta01-mytop.1` for Linux and Windows native). Targets: `jvm` (the code path Android uses), `linuxX64`,
+  `linuxArm64`, `mingwX64`. A gallery binary (`components-gallery`) draws every component; CI screenshots it on Linux.
+  The Android library target and the Apple targets are not built yet: Compose 1.13 needs AGP 9.1 and compileSdk 37 for
+  the first, and compose-native's fork publishes no macOS artifacts for the second.
+- **Migrated from droidtop `ui-shared`** (droidtop `origin/main` aa40732a4; the files keep their packages
+  `dev.droidtop.shell.gamepad` and `dev.droidtop.ui.shared` and their public APIs, so droidtop switches by dependency
+  and deletes its copies): `DesignTokens.kt` (Space, Measure, Corners, Elevation, SideMenu, SettingsLayout, ProgressLook,
+  DialogLook, TypeRole, DroidtopTypography, NarrowPane, ChromeColors, MenuTokens), `MotionTokens.kt` (FocusLook),
+  `ui/shared/Motion.kt`, `ui/shared/KeyFocus.kt` (holdKeyFocus), `TabRail.kt` (TabRail, RailTab, RailColors),
+  `InPlaceHint.kt` (InPlaceHint, hintRing), `SelectionFrame.kt` (selectionFrame, rowFocus: the focus ring of a row or
+  a control), `FocusRequest.kt`, `ShellControls.kt` (ShellSwitch, ShellSlider), `Shine.kt`, `ScrollFollow.kt`,
+  `ChromeBar.kt` (opticallyCentred, frameEdge), `QuickGlyphs.kt` (QuickGlyph, QuickGlyphIcon).
+- Taken out of droidtop files that stay there, as new files with the code unchanged: `PadModality` (from
+  `input/PadGate.kt`) and `Modifier.padRow` (from `TouchActions.kt`).
+- `ComponentTheme` and `PaletteColors`: where `MenuTokens` reads its colours, from the tokens module's `ThemePalette`
+  (droidtop's `MenuTokens` read `GamingTheme.palette`). The one seam: a program sets `ComponentTheme.palette` from the
+  palette its theme engine resolved. `MenuTokens.NoticeDanger` is `noticeColors(...).dangerInk`.
+
+### Not moved yet, and what blocks each (droidtop's switch deletes only what moved)
+- `ShellChip`, `ViewStrip`: need `onPad` / `PadPress` (Android `KeyEvent`), `focusRing` (`FocusGlide`, which keys on an
+  Android `View`), `focusMarquee` (`MenuRow`) and `labelCase` (`GamingTheme`, `ReadingPrefs`).
+- `ShoulderStrip`: extends `ShellWindow` (window metrics, `ControllerLayouts`).
+- `ShellControls`' `ShellProgressBar`, `ShellLoading` and `shellJobColors`: need `JobProgress` and `JobLook` (step 2, notices
+  and jobs); the rest of the file moved. `DesignTokens` is otherwise whole.
+- droidtop's switch, after its main builds again: depend on the components module, delete the moved files, and in
+  `TouchActions.kt` and `PadGate.kt` delete `padRow` and `PadModality`. Set `ComponentTheme.palette` wherever
+  `GamingTheme` publishes its palette.
+
 ## [0.3.0]
 
 ### Changed (breaking, which a new 0.x minor may be)

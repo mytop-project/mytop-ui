@@ -1,0 +1,157 @@
+name: Components
+
+# components/ is a build of its own: the Compose components (mytop-project/tracker#867 step 3), built against the
+# tokens of the same commit (a composite build of this repository). Compose for the JVM (Android's code path) and
+# compose-native for Linux and Windows. The gallery binary draws every component; on Linux it is run under Xvfb and
+# screenshotted.
+on:
+  push:
+    branches: [main, "ci/**"]
+    paths:
+      - "components/**"
+      - "tokens/**"
+      - "notices/**"
+      - ".github/workflows/components.yml"
+  pull_request:
+    paths:
+      - "components/**"
+      - "tokens/**"
+      - "notices/**"
+      - ".github/workflows/components.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DEBIAN_FRONTEND: noninteractive
+  # The patched compose-native: release v<CN_VERSION> of mytop-project/compose-native, its sha256 pinned here.
+  CN_VERSION: 1.13.0-beta01-mytop.1
+  CN_SHA256: 5ace9958184fa4a1a5d331cda484a908696506a9bcab54d966d5260332bae3c1
+  SDL_TAG: release-3.2.30
+  DEV_PACKAGES: >-
+    build-essential cmake ninja-build pkg-config git file
+    libfontconfig1-dev libdbus-1-dev libegl-dev libgl-dev libgles-dev libgbm-dev
+    libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxfixes-dev
+    libxss-dev libxtst-dev libxkbcommon-dev libwayland-dev wayland-protocols
+    libdrm-dev libudev-dev libasound2-dev libpulse-dev libdecor-0-dev
+    xvfb x11-apps imagemagick libgl1-mesa-dri libglx-mesa0 libegl-mesa0
+
+jobs:
+  linux:
+    name: Linux (JVM, linuxX64, gallery screenshot)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Fetch the patched compose-native repository (mytop-project/compose-native)
+        run: |
+          set -euo pipefail
+          temp="$RUNNER_TEMP"
+          mkdir -p "$temp/cn-maven"
+          base="https://github.com/mytop-project/compose-native/releases/download/v$CN_VERSION"
+          curl --fail --location --silent --show-error --output "$temp/cn-maven.tar.gz" "$base/compose-native-maven-$CN_VERSION.tar.gz"
+          echo "$CN_SHA256  $temp/cn-maven.tar.gz" | sha256sum --check
+          tar --force-local -xzf "$temp/cn-maven.tar.gz" -C "$temp/cn-maven"
+          echo "CN_REPO=$temp/cn-maven" >> "$GITHUB_ENV"
+      - name: System packages
+        run: |
+          sudo apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 -o DPkg::Lock::Timeout=120 install -y --no-install-recommends $DEV_PACKAGES
+      - name: Cache SDL3
+        id: sdl-cache
+        uses: actions/cache@v4
+        with:
+          path: /opt/sdl3
+          key: sdl3-${{ env.SDL_TAG }}-x64-v1
+      - name: Build SDL3 (Ubuntu 24.04 has no libsdl3)
+        if: steps.sdl-cache.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch "$SDL_TAG" https://github.com/libsdl-org/SDL /tmp/sdl
+          cmake -S /tmp/sdl -B /tmp/sdl/build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/opt/sdl3 -DSDL_TESTS=OFF -DSDL_EXAMPLES=OFF
+          cmake --build /tmp/sdl/build
+          cmake --install /tmp/sdl/build
+      - name: Install SDL3
+        run: |
+          sudo cp -a /opt/sdl3/lib/. /usr/local/lib/ 2>/dev/null || sudo cp -a /opt/sdl3/lib*/. /usr/local/lib/
+          sudo cp -a /opt/sdl3/include/. /usr/local/include/
+          sudo ldconfig
+      - name: Compile for the JVM and link the gallery for linuxX64
+        working-directory: components
+        env:
+          LINUX_X64_NATIVE_LIBRARY_DIRS: /usr/local/lib
+        run: ./gradlew --no-daemon --stacktrace compileKotlinJvm linkReleaseExecutableLinuxX64
+      - name: Run the gallery under Xvfb and screenshot it
+        working-directory: components
+        run: |
+          bin=$(find build/bin/linuxX64 -type f -path '*releaseExecutable*' -name '*.kexe' | head -n1)
+          mkdir -p out
+          cp "$bin" out/components-gallery
+          chmod +x out/components-gallery
+          export LD_LIBRARY_PATH=/usr/local/lib LIBGL_ALWAYS_SOFTWARE=1 SDL_VIDEODRIVER=x11
+          export OUT="$PWD/out"
+          xvfb-run -a -s "-screen 0 1280x1200x24" bash -c '
+            "$OUT/components-gallery" --shot >"$OUT/gallery.log" 2>&1 &
+            app=$!
+            for _ in $(seq 1 90); do
+              grep -q "^gallery: ready" "$OUT/gallery.log" && break
+              kill -0 "$app" 2>/dev/null || break
+              sleep 1
+            done
+            import -window root "$OUT/gallery.png" || true
+            set +e
+            wait "$app"
+            echo "exit=$?" >"$OUT/gallery.exit"
+          '
+          cat out/gallery.log out/gallery.exit
+          grep -q '^gallery: ok' out/gallery.log
+          grep -q '^exit=0' out/gallery.exit
+          test -s out/gallery.png
+          {
+            echo "### gallery linuxX64"
+            echo "unstripped $(stat -c %s out/components-gallery) bytes"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gallery-linuxX64
+          path: |
+            components/out/gallery.png
+            components/out/gallery.log
+            components/out/gallery.exit
+          retention-days: 14
+
+  windows:
+    name: Windows (mingwX64 gallery builds)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Fetch the patched compose-native repository (mytop-project/compose-native)
+        shell: bash
+        run: |
+          set -euo pipefail
+          temp="$(cygpath -m "$RUNNER_TEMP")"
+          mkdir -p "$temp/cn-maven"
+          base="https://github.com/mytop-project/compose-native/releases/download/v$CN_VERSION"
+          curl --fail --location --silent --show-error --output "$temp/cn-maven.tar.gz" "$base/compose-native-maven-$CN_VERSION.tar.gz"
+          echo "$CN_SHA256  $temp/cn-maven.tar.gz" | sha256sum --check
+          tar --force-local -xzf "$temp/cn-maven.tar.gz" -C "$temp/cn-maven"
+          echo "CN_REPO=$temp/cn-maven" >> "$GITHUB_ENV"
+      - name: Link the gallery for mingwX64
+        working-directory: components
+        shell: bash
+        run: ./gradlew --no-daemon --stacktrace linkReleaseExecutableMingwX64
