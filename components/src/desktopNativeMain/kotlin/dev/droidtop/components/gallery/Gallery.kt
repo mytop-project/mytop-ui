@@ -63,7 +63,7 @@ fun main(args: Array<String>) {
         Window(
             onCloseRequest = ::exitApplication,
             title = "mytop-ui components",
-            state = rememberWindowState(size = DpSize(960.dp, 1100.dp)),
+            state = rememberWindowState(size = DpSize(960.dp, 1190.dp)),
         ) {
             GalleryTheme { Gallery() }
         }
