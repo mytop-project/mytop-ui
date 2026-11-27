@@ -13,7 +13,7 @@ import dev.droidtop.notices.NoticeColors
  * derived from it. This is the slice of droidtop's `GamingPalette` that [MenuTokens] reads; droidtop keeps its own
  * (typefaces, texture, ES-DE) and hands [ComponentTheme] the palette it resolved.
  */
-class PaletteColors(val colors: ThemePalette, val highContrast: Boolean = false) {
+class PaletteColors(val colors: ThemePalette, val highContrast: Boolean = false, val sentenceCase: Boolean = false) {
     val ground = Color(colors.ground)
     val overlaySurface = Color(colors.overlaySurface)
     val card = Color(colors.card)

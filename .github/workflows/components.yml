@@ -97,7 +97,7 @@ jobs:
           chmod +x out/components-gallery
           export LD_LIBRARY_PATH=/usr/local/lib LIBGL_ALWAYS_SOFTWARE=1 SDL_VIDEODRIVER=x11
           export OUT="$PWD/out"
-          xvfb-run -a -s "-screen 0 1280x1200x24" bash -c '
+          xvfb-run -a -s "-screen 0 1280x2600x24" bash -c '
             "$OUT/components-gallery" --shot >"$OUT/gallery.log" 2>&1 &
             app=$!
             for _ in $(seq 1 90); do

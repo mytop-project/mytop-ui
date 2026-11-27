@@ -40,6 +40,11 @@ import dev.droidtop.shell.gamepad.QuickGlyph
 import dev.droidtop.shell.gamepad.QuickGlyphIcon
 import dev.droidtop.shell.gamepad.RailColors
 import dev.droidtop.shell.gamepad.RailTab
+import dev.droidtop.shell.gamepad.ShellChip
+import dev.droidtop.shell.gamepad.ShellLoading
+import dev.droidtop.shell.gamepad.ShellProgressBar
+import dev.droidtop.shell.gamepad.ViewStrip
+import dev.droidtop.shell.gamepad.FocusGlideHost
 import dev.droidtop.shell.gamepad.ShellSlider
 import dev.droidtop.shell.gamepad.ShellSwitch
 import dev.droidtop.shell.gamepad.Space
@@ -63,9 +68,9 @@ fun main(args: Array<String>) {
         Window(
             onCloseRequest = ::exitApplication,
             title = "mytop-ui components",
-            state = rememberWindowState(size = DpSize(960.dp, 1190.dp)),
+            state = rememberWindowState(size = DpSize(960.dp, 2400.dp)),
         ) {
-            GalleryTheme { Gallery() }
+            GalleryTheme { FocusGlideHost(Modifier.fillMaxSize()) { Gallery() } }
         }
         if (shot) {
             LaunchedEffect(Unit) {
@@ -208,6 +213,30 @@ private fun Gallery() {
                 onSelect = { tab = it.key },
                 modifier = Modifier.fillMaxWidth().height(72.dp),
             )
+        }
+
+        Section("Chips, the view strip and progress") {
+            Row(horizontalArrangement = Arrangement.spacedBy(Space.Md), verticalAlignment = Alignment.CenterVertically) {
+                ShellChip("Filter", selected = false, onClick = {})
+                ShellChip("On", on = true, selected = false, onClick = {})
+                ShellChip("Save", primary = true, selected = true, onClick = {})
+                ShellChip("Play", large = true, selected = false, onClick = {})
+                ShellChip("Disabled", primary = true, enabled = false, selected = false, onClick = {})
+            }
+            ViewStrip(
+                labels = listOf("All", "Installed", "Favourites", "Recent"),
+                active = 1,
+                focused = 2,
+                pill = null,
+                onSelect = {},
+                onClearPill = {},
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(Space.Lg), verticalAlignment = Alignment.CenterVertically) {
+                ShellProgressBar(0.4f, Modifier.width(240.dp))
+                ShellProgressBar(1f, Modifier.width(240.dp))
+                ShellLoading()
+            }
         }
 
         Section("Quick glyphs") {

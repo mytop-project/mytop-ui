@@ -19,8 +19,9 @@ kotlin {
     androidLibrary {
         namespace = "dev.droidtop.components"
         // Compose 1.13's AARs need compileSdk 37.1.
-        compileSdk = 37
-        compileSdkExtension = 1
+        compileSdk {
+            version = release(37) { minorApiLevel = 1 }
+        }
         minSdk = 26
     }
     jvm {
