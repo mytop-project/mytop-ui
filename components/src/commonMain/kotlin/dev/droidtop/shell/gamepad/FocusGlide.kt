@@ -285,7 +285,7 @@ fun FocusGlideHost(modifier: Modifier = Modifier, content: @Composable () -> Uni
                 return@collectLatest
             }
             var first = src !== shown
-            val start = System.nanoTime()
+            val start = FocusClock.nanos()
             var last: Rect? = null
             while (true) {
                 val b = glide.boundsOf(src, density)
@@ -313,7 +313,7 @@ fun FocusGlideHost(modifier: Modifier = Modifier, content: @Composable () -> Uni
                         val dy = b.center.y - (edges[1].value + edges[3].value) / 2f
                         val leadIdx = glideLeadEdge(dx, dy)
                         val trailIdx = (leadIdx + 2) % 4
-                        val now = System.nanoTime()
+                        val now = FocusClock.nanos()
                         val isHeld = glideIsHeld((now - lastMove) / 1_000_000)
                         lastMove = now
                         scope.launch { alpha.animateTo(1f, Motion.tw(120)) }
@@ -334,19 +334,19 @@ fun FocusGlideHost(modifier: Modifier = Modifier, content: @Composable () -> Uni
                             cornerTo(src, b, snap = false)
                         }
                     }
-                    movedAt = System.nanoTime()
+                    movedAt = FocusClock.nanos()
                     if (!dropped) rectEdges(b).forEachIndexed { i, v -> go(i, v, dirSpecs[i], delays[i]) }
                     last = b
                 } else if (b != last && jobs[5]?.isActive != true) {
                     // It moved under the ring: keep the stretch while the move is fresh, else follow.
-                    val fresh = (System.nanoTime() - movedAt) / 1_000_000 < Motion.GlideSettleMs
+                    val fresh = (FocusClock.nanos() - movedAt) / 1_000_000 < Motion.GlideSettleMs
                     rectEdges(b).forEachIndexed { i, v -> go(i, v, if (fresh) dirSpecs[i] else follow(), 0L) }
                     if (last == null) scope.launch { alpha.animateTo(1f, Motion.tw(120)) }
                     last = b
                 }
                 // Layer animations (a capsule lifting, a row sliding) move it without a relayout,
                 // so look again each frame for a moment after anything changes, then stop.
-                if ((System.nanoTime() - start) / 1_000_000 > Motion.GlideSettleMs) break
+                if ((FocusClock.nanos() - start) / 1_000_000 > Motion.GlideSettleMs) break
                 withFrameNanos { }
             }
         }
@@ -419,3 +419,10 @@ fun glideGap(from: Rect, to: Rect): Float {
 
 /** Whether a move whose controls are [distanceDp] apart, edge to edge, travels as a drop: a far, single press. Pure. */
 fun glideIsFar(held: Boolean, distanceDp: Float): Boolean = !held && distanceDp > Motion.GlideFarDp
+
+/** A monotonic clock in nanoseconds (the one place the glide needs time; `System.nanoTime` is not in common code). */
+internal object FocusClock {
+    private val start = kotlin.time.TimeSource.Monotonic.markNow()
+
+    fun nanos(): Long = start.elapsedNow().inWholeNanoseconds
+}
