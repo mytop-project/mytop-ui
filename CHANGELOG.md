@@ -3,6 +3,39 @@
 All notable changes to mytop-ui. Versions follow [Semantic Versioning](https://semver.org/)
 (in 0.x, only a new minor version may break the interface; CI enforces it).
 
+## [0.5.0]
+
+### Added
+- `components/`: the **Android library target** (AGP 9.5.2's Kotlin Multiplatform library plugin, compileSdk 37.1, minSdk 26,
+  Gradle 9.6.1), beside `jvm`, `linuxX64`, `linuxArm64` and `mingwX64`. CI installs `platforms;android-37.1` and builds the AAR.
+- `components/` tests (`commonTest`, run on the JVM and linuxX64): the tokens (MenuTokens reads the tokens module's palette, the
+  spacing scale, the danger colour), the motion curves and durations, the scroll-follow arithmetic, the tab rail's spoken
+  names and extents, the focus attach retry, and the pad-modality state.
+- **Migrated from droidtop `ui-shared`** (droidtop `origin/main` aa40732a4), the pieces 0.4.0 left in droidtop, each with its
+  blocker removed and the same names: `FocusGlide.kt` (`FocusGlideHost`, `focusRing`, the sliding ring; `FocusGlide` is keyed on
+  the window's `WindowInfo` where droidtop's was keyed on an Android `View`, so its constructor parameter is `window`, not
+  `view`), `ShellChip.kt`, `ViewStrip.kt`, `ShoulderStrip.kt`, `ShellControls.kt` whole (`ShellProgressBar`, `ShellLoading`,
+  `shellJobColors` back in), `ui/shared/JobProgress.kt` and runtime-common's `JobLook.kt` (package
+  `dev.droidtop.library.settings`), `Keycap` and `ShoulderGlyph` (from `TouchActions.kt`), `fadeWhileMoreSideways` (from
+  `MenuPanel.kt`), `StatusClusterRoom`, `focusMarquee` (from `MenuRow.kt`), `labelCase` (from `GamingTheme.kt`), the pure part of
+  `ShellWindow.kt` (the window data, gutters, canvas density maths, touch target maths, `LocalShellWindow`), and the pad input:
+  `PadPress`, `PadCadence`, `PadEdges`, `Modifier.onPad`, `menuStep` and `GamepadAction`.
+- `PadKeyMap` (the key table over Compose's `Key`; droidtop's `GamepadKeyMap` is the same table over Android key codes) and
+  `PadKeyHooks`: Compose's common key event has no repeat count, down time or fallback flag, so a DOWN of a key already down is a
+  repeat, and Android sets `PadKeyHooks.isFallback` and `repeatCount` from its own event; `PadKeyMap.faceSwapped` is the live face
+  layout. `PaletteColors` gained `sentenceCase`.
+- The gallery draws chips, the view strip, progress bars and the sliding ring host.
+
+### Changed
+- `Modifier.focusRing` is the sliding ring (`FocusGlideHost` hosts it) and falls back to the still ring outside a host, as
+  droidtop's does; the still-only `FocusRing.kt` of 0.4.0 is gone.
+
+### Switching droidtop (after its AGP 9 move)
+- Depend on the components module; delete the moved files; in droidtop's `TouchActions.kt` and `PadGate.kt` delete `padRow` and
+  `PadModality`, `Keycap`/`ShoulderGlyph`, and in `GamepadAction.kt` the enum (keep `GamepadKeyMap`, which maps Android codes);
+  keep `ProvideShellCanvas` and `currentShellWindow` (Android density and configuration); set `ComponentTheme.palette` where
+  `GamingTheme` publishes its palette, `PadKeyMap.faceSwapped` from `ControllerLayouts`, and the `PadKeyHooks` from `nativeKeyEvent`.
+
 ## [0.4.0]
 
 ### Added

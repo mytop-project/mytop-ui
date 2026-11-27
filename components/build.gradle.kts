@@ -10,7 +10,7 @@ plugins {
 // The patched build's version (CN_VERSION, settings.gradle.kts) or upstream's.
 val composeNativeVersion = System.getenv("CN_VERSION") ?: "1.13.0-beta01"
 val composeVersion = "1.13.0-beta01"
-val uiLibVersion = "0.4.0" // mytop-ui's own version; the composite build ignores it
+val uiLibVersion = "0.5.0" // mytop-ui's own version; the composite build ignores it
 
 // The Compose components of mytop-ui (mytop-project/tracker#867 step 3): droidtop's pure-Compose pieces of ui-shared,
 // with the same packages and the same APIs, written once in commonMain. Official Compose serves every target that has
