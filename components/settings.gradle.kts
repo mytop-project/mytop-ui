@@ -13,6 +13,8 @@ pluginManagement {
                 content { includeGroupByRegex("dev\\.brahmkshatriya.*") }
             }
         }
+        // The Android Gradle plugin is on Google's repository.
+        google()
         mavenCentral()
         gradlePluginPortal()
     }

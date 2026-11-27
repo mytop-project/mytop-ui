@@ -83,11 +83,11 @@ jobs:
           sudo cp -a /opt/sdl3/lib/. /usr/local/lib/ 2>/dev/null || sudo cp -a /opt/sdl3/lib*/. /usr/local/lib/
           sudo cp -a /opt/sdl3/include/. /usr/local/include/
           sudo ldconfig
-      - name: Compile for the JVM and link the gallery for linuxX64
+      - name: Tests on the JVM and linuxX64, and link the gallery for linuxX64
         working-directory: components
         env:
           LINUX_X64_NATIVE_LIBRARY_DIRS: /usr/local/lib
-        run: ./gradlew --no-daemon --stacktrace compileKotlinJvm linkReleaseExecutableLinuxX64
+        run: ./gradlew --no-daemon --stacktrace jvmTest linuxX64Test linkReleaseExecutableLinuxX64
       - name: Run the gallery under Xvfb and screenshot it
         working-directory: components
         run: |
@@ -127,6 +127,42 @@ jobs:
             components/out/gallery.log
             components/out/gallery.exit
           retention-days: 14
+
+  android:
+    name: Android (library target)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Fetch the patched compose-native repository (mytop-project/compose-native)
+        run: |
+          set -euo pipefail
+          temp="$RUNNER_TEMP"
+          mkdir -p "$temp/cn-maven"
+          base="https://github.com/mytop-project/compose-native/releases/download/v$CN_VERSION"
+          curl --fail --location --silent --show-error --output "$temp/cn-maven.tar.gz" "$base/compose-native-maven-$CN_VERSION.tar.gz"
+          echo "$CN_SHA256  $temp/cn-maven.tar.gz" | sha256sum --check
+          tar --force-local -xzf "$temp/cn-maven.tar.gz" -C "$temp/cn-maven"
+          echo "CN_REPO=$temp/cn-maven" >> "$GITHUB_ENV"
+      - name: Android SDK platform 37.1 (Compose 1.13's AARs need compileSdk 37.1)
+        run: |
+          SDKM="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          (yes || true) | sudo "$SDKM" --sdk_root="$ANDROID_HOME" --licenses > /dev/null
+          sudo "$SDKM" --sdk_root="$ANDROID_HOME" "platforms;android-37.1"
+      - name: Build the Android library
+        working-directory: components
+        run: |
+          ./gradlew --no-daemon tasks --all | grep -iE "aar|android" | head -40
+          task=$(./gradlew --no-daemon -q tasks --all | grep -oE '^bundle[A-Za-z]*Aar' | head -n1)
+          echo "task: $task"
+          ./gradlew --no-daemon --stacktrace "$task"
+          find build -name '*.aar' | head
 
   windows:
     name: Windows (mingwX64 gallery builds)
