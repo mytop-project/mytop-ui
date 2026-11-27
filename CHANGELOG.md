@@ -3,6 +3,13 @@
 All notable changes to mytop-ui. Versions follow [Semantic Versioning](https://semver.org/)
 (in 0.x, only a new minor version may break the interface; CI enforces it).
 
+## [0.5.1]
+
+### Fixed
+- Keep every bit of Compose's key identity when tracking held buttons. Android packs the native key code into the high
+  32 bits; truncating it made every key share one press record, so overlapping buttons could steal releases or repeats.
+  The raw integer-key API stays compatible. Regression tests cover overlapping packed keys and both halves of the id.
+
 ## [0.5.0]
 
 ### Added

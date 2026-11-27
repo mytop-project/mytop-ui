@@ -45,11 +45,21 @@ class PadCadence(private val tiers: List<Pair<Long, Long>>) {
  * consumed exactly when this owner took the press (so a release that went to another window is not ours).
  */
 class PadEdges(private val cadence: PadCadence) {
-    private val lastStep = HashMap<Int, Long>()
-    private val downAt = HashMap<Int, Long>()
+    private val lastStep = HashMap<Long, Long>()
+    private val downAt = HashMap<Long, Long>()
 
     fun down(
         keyCode: Int,
+        action: GamepadAction,
+        repeatCount: Int,
+        downTime: Long,
+        eventTime: Long,
+        handle: (PadPress) -> Boolean,
+    ): Boolean = down(keyCode.toLong(), action, repeatCount, downTime, eventTime, handle)
+
+    /** Compose keys may pack a platform code in either half of their Long. Keep the complete identity. */
+    internal fun down(
+        keyCode: Long,
         action: GamepadAction,
         repeatCount: Int,
         downTime: Long,
@@ -72,7 +82,9 @@ class PadEdges(private val cadence: PadCadence) {
     }
 
     /** An UP edge: consumed exactly when this owner took the press. */
-    fun up(keyCode: Int): Boolean = lastStep.remove(keyCode) != null
+    fun up(keyCode: Int): Boolean = up(keyCode.toLong())
+
+    internal fun up(keyCode: Long): Boolean = lastStep.remove(keyCode) != null
 
     /**
      * One raw key event. The system back key is never taken: it belongs to the back dispatcher. Nor is a FALLBACK key
@@ -88,7 +100,8 @@ class PadEdges(private val cadence: PadCadence) {
         if (PadKeyHooks.isFallback(event)) return false
         if (preview && PadKeyMap.isTextKey(key)) return false
         val action = PadKeyMap.actionFor(key, event.isShiftPressed) ?: return false
-        val id = key.keyCode.toInt()
+        // Android's Key packs nativeKeyCode into the high 32 bits; toInt() made every one of them zero.
+        val id = key.keyCode
         return when (event.type) {
             KeyEventType.KeyDown -> {
                 val now = nowMs()
