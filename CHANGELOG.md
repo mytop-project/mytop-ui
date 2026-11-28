@@ -3,6 +3,12 @@
 All notable changes to mytop-ui. Versions follow [Semantic Versioning](https://semver.org/)
 (in 0.x, only a new minor version may break the interface; CI enforces it).
 
+## [0.5.2]
+
+### Fixed
+- Shared loading indicators expose indeterminate progress to assistive technology in their consuming apps.
+- Align the Rust contract version with the shared library release version.
+
 ## [0.5.1]
 
 ### Fixed

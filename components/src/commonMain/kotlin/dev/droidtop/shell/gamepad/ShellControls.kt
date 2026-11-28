@@ -12,6 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import dev.droidtop.ui.shared.Motion
 
@@ -94,7 +97,9 @@ fun ShellProgressBar(
  */
 @Composable
 fun ShellLoading(modifier: Modifier = Modifier.width(ProgressLook.LoadingWidth)) {
-    ShellProgressBar(-1f, modifier)
+    ShellProgressBar(-1f, modifier.semantics {
+        progressBarRangeInfo = ProgressBarRangeInfo.Indeterminate
+    })
 }
 
 /** Gaming's colours for a job's bar and mark. */
